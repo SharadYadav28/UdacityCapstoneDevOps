@@ -1,0 +1,133 @@
+#Capstone Config
+version: 2.1
+
+executors:
+  python:
+    docker:
+      - image: circleci/python:3.7.3-stretch
+  aws:
+    docker:
+      - image: amazon/aws-cli
+
+jobs:
+  lint-app:
+    executor: python
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies and Lint app
+          command: |
+            sudo apt-get update
+            sudo apt-get install python3-venv
+            python3 -m venv virtualenv
+            . virtualenv/bin/activate
+            make install
+             # Install hadolint
+            sudo wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.6.1/hadolint-Linux-x86_64 &&\
+            sudo chmod +x /bin/hadolint
+            
+            pip install pylint
+            make lint
+            
+            # Install eksctl
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            if which eksctl > /dev/null; then
+              echo "eksctl is already installed"
+              exit 0
+            fi
+  build:
+    machine: true
+    working_directory: ~/app
+    steps:
+      - checkout
+      - run:
+          name: Build, tag and push docker image to docker.io
+          command: |
+            docker login -u ${DOCKER_USER} -p ${DOCKER_PWD}
+            docker build -t diptinwm/dipticapstone:${CIRCLE_WORKFLOW_ID:0:7} .
+            docker push diptinwm/dipticapstone:${CIRCLE_WORKFLOW_ID:0:7}
+            docker tag diptinwm/dipticapstone:${CIRCLE_WORKFLOW_ID:0:7} diptinwm/dipticapstone:latest
+            docker push diptinwm/dipticapstone:latest
+  
+  create-deployment:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          dipticapstone
+        type: string
+    steps:
+      - checkout
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          aws-region: us-east-2 
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: CloudFormation/appdeployment.yml
+          resource-name: deployment/dipticapstone
+
+  test-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          dipticapstone
+        type: string
+    steps:
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          aws-region: us-east-2 
+      - run:
+          name: Test cluster
+          command: |
+            kubectl get svc
+            kubectl get nodes
+            kubectl get deployment
+                      
+orbs:
+  aws-eks: circleci/aws-eks@dev:alpha
+  kubernetes: circleci/kubernetes@0.11.2
+  cli: circleci/circleci-cli@0.1.2
+
+workflows:
+  deployment:
+    jobs:
+      - lint-app
+      - build:
+          requires:
+            - "lint-app"
+      - aws-eks/create-cluster:
+          cluster-name: dipticapstone
+          aws-region: us-east-2 
+          requires:
+            - build
+      - create-deployment:
+          cluster-name: dipticapstone
+          requires:
+            - aws-eks/create-cluster
+      - aws-eks/update-container-image:
+          cluster-name: dipticapstone
+          aws-region: us-east-2 
+          container-image-updates: dipticapstone=diptinwm/dipticapstone
+          post-steps:
+              - kubernetes/delete-resource:
+                  resource-names: dipticapstone
+                  resource-types: deployment
+                  wait: true
+          record: true
+          requires:
+              - create-deployment
+          resource-name: deployment/dipticapstone
+      - test-cluster:
+          cluster-name: dipticapstone
+          requires:
+            - aws-eks/update-container-image
+      - aws-eks/delete-cluster:
+          cluster-name: dipticapstone
+          aws-region: us-east-2 
+          requires:
+            - test-cluster
