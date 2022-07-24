@@ -45,17 +45,17 @@ jobs:
           name: Build, tag and push docker image to docker.io
           command: |
             docker login -u ${DOCKER_USER} -p ${DOCKER_PWD}
-            docker build -t diptinwm/dipticapstone:${CIRCLE_WORKFLOW_ID:0:7} .
-            docker push diptinwm/dipticapstone:${CIRCLE_WORKFLOW_ID:0:7}
-            docker tag diptinwm/dipticapstone:${CIRCLE_WORKFLOW_ID:0:7} diptinwm/dipticapstone:latest
-            docker push diptinwm/dipticapstone:latest
+            docker build -t sharadyadav28/sharadcapstone:${CIRCLE_WORKFLOW_ID:0:7} .
+            docker push sharadyadav28/sharadcapstone:${CIRCLE_WORKFLOW_ID:0:7}
+            docker tag sharadyadav28/sharadcapstone:${CIRCLE_WORKFLOW_ID:0:7} sharadyadav28/sharadcapstone:latest
+            docker push sharadyadav28/sharadcapstone:latest
   
   create-deployment:
     executor: aws-eks/python3
     parameters:
       cluster-name:
         description: |
-          dipticapstone
+          sharadcapstone
         type: string
     steps:
       - checkout
@@ -67,14 +67,14 @@ jobs:
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: CloudFormation/appdeployment.yml
-          resource-name: deployment/dipticapstone
+          resource-name: deployment/sharadcapstone
 
   test-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
         description: |
-          dipticapstone
+          sharadcapstone
         type: string
     steps:
       - kubernetes/install
@@ -101,33 +101,33 @@ workflows:
           requires:
             - "lint-app"
       - aws-eks/create-cluster:
-          cluster-name: dipticapstone
+          cluster-name: sharadcapstone
           aws-region: us-east-2 
           requires:
             - build
       - create-deployment:
-          cluster-name: dipticapstone
+          cluster-name: sharadcapstone
           requires:
             - aws-eks/create-cluster
       - aws-eks/update-container-image:
-          cluster-name: dipticapstone
+          cluster-name: sharadcapstone
           aws-region: us-east-2 
-          container-image-updates: dipticapstone=diptinwm/dipticapstone
+          container-image-updates: sharadcapstone=sharadyadav28/sharadcapstone
           post-steps:
               - kubernetes/delete-resource:
-                  resource-names: dipticapstone
+                  resource-names: sharadcapstone
                   resource-types: deployment
                   wait: true
           record: true
           requires:
               - create-deployment
-          resource-name: deployment/dipticapstone
+          resource-name: deployment/sharadcapstone
       - test-cluster:
-          cluster-name: dipticapstone
+          cluster-name: sharadcapstone
           requires:
             - aws-eks/update-container-image
       - aws-eks/delete-cluster:
-          cluster-name: dipticapstone
+          cluster-name: sharadcapstone
           aws-region: us-east-2 
           requires:
             - test-cluster
