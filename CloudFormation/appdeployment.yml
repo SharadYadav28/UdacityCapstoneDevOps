@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dipticapstone
+  name: sharadcapstone
   labels:
-    app: dipticapstone
+    app: sharadcapstone
   namespace: default
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: dipticapstone
+      app: sharadcapstone
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -18,12 +18,12 @@ spec:
   template:
     metadata:
       labels:
-        app: dipticapstone
+        app: sharadcapstone
     spec:
       containers:
-        - image: diptinwm/dipticapstone
+        - image: sharadyadav28/sharadcapstone
           imagePullPolicy: Always
-          name: dipticapstone
+          name: sharadcapstone
           ports:
             - containerPort: 80
 
@@ -31,13 +31,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: dipticapstone
+  name: sharadcapstone
   labels:
-    app: dipticapstone
+    app: sharadcapstone
 spec:
   type: LoadBalancer
   selector:
-    app: dipticapstone
+    app: sharadcapstone
   ports:
     - port: 80
       targetPort: 80
