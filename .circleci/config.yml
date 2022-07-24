@@ -62,7 +62,7 @@ jobs:
       - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
-          aws-region: us-east-2 
+          aws-region: us-east-1 
           install-kubectl: true
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
@@ -80,7 +80,7 @@ jobs:
       - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
-          aws-region: us-east-2 
+          aws-region: us-east-1 
       - run:
           name: Test cluster
           command: |
@@ -102,7 +102,7 @@ workflows:
             - "lint-app"
       - aws-eks/create-cluster:
           cluster-name: sharadcapstone
-          aws-region: us-east-2 
+          aws-region: us-east-1 
           requires:
             - build
       - create-deployment:
@@ -111,7 +111,7 @@ workflows:
             - aws-eks/create-cluster
       - aws-eks/update-container-image:
           cluster-name: sharadcapstone
-          aws-region: us-east-2 
+          aws-region: us-east-1 
           container-image-updates: sharadcapstone=sharadyadav28/sharadcapstone
           post-steps:
               - kubernetes/delete-resource:
@@ -128,6 +128,6 @@ workflows:
             - aws-eks/update-container-image
       - aws-eks/delete-cluster:
           cluster-name: sharadcapstone
-          aws-region: us-east-2 
+          aws-region: us-east-1 
           requires:
             - test-cluster
