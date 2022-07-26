@@ -79,6 +79,7 @@ jobs:
       
       - aws-eks/create-cluster:
           cluster-name: sharadcapstone
+          aws-region: us-east-1
           
   create-deployment:
     executor: aws-eks/python3
