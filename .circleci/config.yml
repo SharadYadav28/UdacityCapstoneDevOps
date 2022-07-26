@@ -132,7 +132,6 @@ workflows:
             - "lint-app"
       - create-cluster:
           cluster-name: sharadcapstone
-          aws-region: us-east-1 
           requires:
             - build            
       - create-deployment:
