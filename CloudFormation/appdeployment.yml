@@ -7,7 +7,7 @@ metadata:
   namespace: default
 spec:
   replicas: 2
-  progressDeadlineSeconds: 200
+  progressDeadlineSeconds: 1200
   selector:
     matchLabels:
       app: sharadcapstone
