@@ -45,17 +45,17 @@ jobs:
           name: Build, tag and push docker image to docker.io
           command: |
             docker login -u ${DOCKER_USER} -p ${DOCKER_PWD}
-            docker build -t sharadyadav28/sharadcapstone:${CIRCLE_WORKFLOW_ID:0:7} .
-            docker push sharadyadav28/sharadcapstone:${CIRCLE_WORKFLOW_ID:0:7}
-            docker tag sharadyadav28/sharadcapstone:${CIRCLE_WORKFLOW_ID:0:7} sharadyadav28/sharadcapstone:latest
-            docker push sharadyadav28/sharadcapstone:latest
+            docker build -t sharadyadav28/sharadcapstone1:${CIRCLE_WORKFLOW_ID:0:7} .
+            docker push sharadyadav28/sharadcapstone1:${CIRCLE_WORKFLOW_ID:0:7}
+            docker tag sharadyadav28/sharadcapstone1:${CIRCLE_WORKFLOW_ID:0:7} sharadyadav28/sharadcapstone1:latest
+            docker push sharadyadav28/sharadcapstone1:latest
   
   create-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
         description: |
-          sharadcapstone
+          sharadcapstone1
         type: string
         
     steps:
@@ -78,7 +78,7 @@ jobs:
             rmdir eksctl_download
       
       - aws-eks/create-cluster:
-          cluster-name: sharadcapstone
+          cluster-name: sharadcapstone1
           aws-region: us-east-1
           
   create-deployment:
@@ -86,7 +86,7 @@ jobs:
     parameters:
       cluster-name:
         description: |
-          sharadcapstone
+          sharadcapstone1
         type: string
     steps:
       - checkout
@@ -98,14 +98,14 @@ jobs:
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: CloudFormation/appdeployment.yml
-          resource-name: deployment/sharadcapstone
+          resource-name: deployment/sharadcapstone1
 
   test-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
         description: |
-          sharadcapstone
+          sharadcapstone1
         type: string
     steps:
       - kubernetes/install
@@ -120,7 +120,7 @@ jobs:
             kubectl get deployment
                       
 orbs:
-  aws-eks: circleci/aws-eks@1.1.0
+  aws-eks: circleci/aws-eks@2.2.0
   kubernetes: circleci/kubernetes@1.3
   cli: circleci/circleci-cli@0.1.2
   
