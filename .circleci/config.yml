@@ -45,17 +45,17 @@ jobs:
           name: Build, tag and push docker image to docker.io
           command: |
             docker login -u ${DOCKER_USER} -p ${DOCKER_PWD}
-            docker build -t sharadyadav28/sharadcapstone1:${CIRCLE_WORKFLOW_ID:0:7} .
-            docker push sharadyadav28/sharadcapstone1:${CIRCLE_WORKFLOW_ID:0:7}
-            docker tag sharadyadav28/sharadcapstone1:${CIRCLE_WORKFLOW_ID:0:7} sharadyadav28/sharadcapstone1:latest
-            docker push sharadyadav28/sharadcapstone1:latest
+            docker build -t sharadyadav28/sharadcapstone:${CIRCLE_WORKFLOW_ID:0:7} .
+            docker push sharadyadav28/sharadcapstone:${CIRCLE_WORKFLOW_ID:0:7}
+            docker tag sharadyadav28/sharadcapstone:${CIRCLE_WORKFLOW_ID:0:7} sharadyadav28/sharadcapstone:latest
+            docker push sharadyadav28/sharadcapstone:latest
   
   create-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
         description: |
-          sharadcapstone1
+          sharadcapstone
         type: string
         
     steps:
@@ -78,7 +78,7 @@ jobs:
             rmdir eksctl_download
       
       - aws-eks/create-cluster:
-          cluster-name: sharadcapstone1
+          cluster-name: sharadcapstone
           aws-region: us-east-1
           
   create-deployment:
@@ -86,7 +86,7 @@ jobs:
     parameters:
       cluster-name:
         description: |
-          sharadcapstone1
+          sharadcapstone
         type: string
     steps:
       - checkout
@@ -98,14 +98,14 @@ jobs:
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: CloudFormation/appdeployment.yml
-          resource-name: deployment/sharadcapstone1
+          resource-name: deployment/sharadcapstone
 
   test-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
         description: |
-          sharadcapstone1
+          sharadcapstone
         type: string
     steps:
       - kubernetes/install
@@ -132,32 +132,32 @@ workflows:
           requires:
             - "lint-app"
       - create-cluster:
-          cluster-name: sharadcapstone1
+          cluster-name: sharadcapstone
           requires:
             - build            
       - create-deployment:
-          cluster-name: sharadcapstone1
+          cluster-name: sharadcapstone
           requires:
             - create-cluster
       - aws-eks/update-container-image:
-          cluster-name: sharadcapstone1
+          cluster-name: sharadcapstone
           aws-region: us-east-1 
-          container-image-updates: sharadcapstone1=sharadyadav28/sharadcapstone1
+          container-image-updates: sharadcapstone1=sharadyadav28/sharadcapstone
           post-steps:
               - kubernetes/delete-resource:
-                  resource-names: sharadcapstone1
+                  resource-names: sharadcapstone
                   resource-types: deployment
                   wait: true
           record: true
           requires:
               - create-deployment
-          resource-name: deployment/sharadcapstone1
+          resource-name: deployment/sharadcapstone
       - test-cluster:
-          cluster-name: sharadcapstone1
+          cluster-name: sharadcapstone
           requires:
             - aws-eks/update-container-image
       - aws-eks/delete-cluster:
-          cluster-name: sharadcapstone1
+          cluster-name: sharadcapstone
           aws-region: us-east-1 
           requires:
             - test-cluster
