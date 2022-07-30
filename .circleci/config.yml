@@ -121,7 +121,7 @@ jobs:
                       
 orbs:
   aws-eks: circleci/aws-eks@1.1.0
-  kubernetes: circleci/kubernetes@1.3
+  kubernetes: circleci/kubernetes@0.11.2
   cli: circleci/circleci-cli@0.1.2
   
 workflows:
