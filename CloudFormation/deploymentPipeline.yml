@@ -215,7 +215,7 @@ Resources:
             SecurityGroupIds:
             -   Fn::GetAtt: NodeSecurityGroup.GroupId
             SubnetId: !Ref Subnet1
-            ImageId: ami-005bdb005fb00e791
+            ImageId: ami-0c4f7023847b90238
             InstanceType: !Ref WorkerInstanceType
             KeyName: !Ref KeyName
             
