@@ -132,32 +132,32 @@ workflows:
           requires:
             - "lint-app"
       - create-cluster:
-          cluster-name: sharadcapstone
+          cluster-name: sharadcapstone1
           requires:
             - build            
       - create-deployment:
-          cluster-name: sharadcapstone
+          cluster-name: sharadcapstone1
           requires:
             - create-cluster
       - aws-eks/update-container-image:
-          cluster-name: sharadcapstone
+          cluster-name: sharadcapstone1
           aws-region: us-east-1 
-          container-image-updates: sharadcapstone=sharadyadav28/sharadcapstone
+          container-image-updates: sharadcapstone1=sharadyadav28/sharadcapstone1
           post-steps:
               - kubernetes/delete-resource:
-                  resource-names: sharadcapstone
+                  resource-names: sharadcapstone1
                   resource-types: deployment
                   wait: true
           record: true
           requires:
               - create-deployment
-          resource-name: deployment/sharadcapstone
+          resource-name: deployment/sharadcapstone1
       - test-cluster:
-          cluster-name: sharadcapstone
+          cluster-name: sharadcapstone1
           requires:
             - aws-eks/update-container-image
       - aws-eks/delete-cluster:
-          cluster-name: sharadcapstone
+          cluster-name: sharadcapstone1
           aws-region: us-east-1 
           requires:
             - test-cluster
